@@ -121,7 +121,7 @@ resource "aws_security_group_rule" "web_server_allow_all_outbound" {
 resource "aws_alb" "web_servers" {
   name            = "${var.prefix}-${var.name}"
   security_groups = aws_security_group.alb.*.id
-  subnets         = var.subnet-ids
+  subnets         = var.subnet_ids
   internal        = var.is_internal_alb
 
   lifecycle {
