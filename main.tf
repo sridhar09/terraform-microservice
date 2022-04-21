@@ -19,6 +19,11 @@ provider "aws" {
 # DEPLOY THE FRONTEND
 # ---------------------------------------------------------------------------------------------------------------------
 
+module "base-network" {
+  source = "./base-network"
+  prefix = var.prefix
+}
+
 module "frontend" {
   source = "./microservice"
 
@@ -28,12 +33,14 @@ module "frontend" {
   key_name              = var.key_name
   user_data_script      = file("user-data/user-data-frontend.sh")
   server_text           = var.frontend_server_text
-  student_alias         = var.student_alias
+  prefix                = var.prefix
   is_internal_alb       = false
 
   # Pass an output from the backend module to the frontend module. This is the URL of the backend microservice, which
   # the frontend will use for "service calls"
   backend_url = module.backend.url
+  subnet_ids  = module.base-network.private_subnet_ids
+  vpc_id      = module.base-network.vpc_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -49,6 +56,8 @@ module "backend" {
   key_name              = var.key_name
   user_data_script      = file("user-data/user-data-backend.sh")
   server_text           = var.backend_server_text
-  student_alias         = var.student_alias
+  prefix                = var.prefix
   is_internal_alb       = true
+  subnet_ids            = module.base-network.private_subnet_ids
+  vpc_id                = module.base-network.vpc_id
 }

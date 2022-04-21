@@ -3,7 +3,7 @@
 # You must provide a value for each of these parameters.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "student_alias" {
+variable "prefix" {
   description = "Your student alias"
 }
 
@@ -60,4 +60,13 @@ variable "server_text" {
 variable "backend_url" {
   description = "The URL the frontend can use to reach the backend. Leave blank if this is not a frontend."
   default     = ""
+}
+
+variable "vpc_id" {
+  description = "VPC ID of the VPC"
+}
+
+variable "subnet_ids" {
+  description = "Subnet IDs"
+  type = list(string)
 }

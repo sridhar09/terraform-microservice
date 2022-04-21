@@ -1,4 +1,4 @@
-variable "student_alias" {
+variable "prefix" {
   description = "Your student alias"
 }
 

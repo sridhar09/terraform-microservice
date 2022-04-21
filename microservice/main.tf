@@ -8,7 +8,7 @@ resource "aws_autoscaling_group" "microservice" {
   desired_capacity = var.min_size
   min_elb_capacity = var.min_size
 
-  vpc_zone_identifier = data.aws_subnet_ids.default.ids
+  vpc_zone_identifier = var.subnet_ids
 
   health_check_type         = "ELB"
   health_check_grace_period = 30
@@ -16,7 +16,7 @@ resource "aws_autoscaling_group" "microservice" {
 
   tag {
     key                 = "Name"
-    value               = "${var.student_alias}-${var.name}"
+    value               = "${var.prefix}-${var.name}"
     propagate_at_launch = true
   }
 
@@ -29,7 +29,7 @@ resource "aws_autoscaling_group" "microservice" {
 
 
 resource "aws_launch_configuration" "microservice" {
-  name          = "${var.student_alias}-${var.name}"
+  name          = "${var.prefix}-${var.name}"
   image_id      = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
   user_data     = data.template_file.user_data.rendered
@@ -80,8 +80,8 @@ data "aws_ami" "ubuntu" {
 
 
 resource "aws_security_group" "web_server" {
-  name   = "${var.student_alias}-${var.name}"
-  vpc_id = data.aws_vpc.default.id
+  name   = "${var.prefix}-${var.name}"
+  vpc_id = var.vpc_id
 
   lifecycle {
     create_before_destroy = true
@@ -119,9 +119,9 @@ resource "aws_security_group_rule" "web_server_allow_all_outbound" {
 
 
 resource "aws_alb" "web_servers" {
-  name            = "${var.student_alias}-${var.name}"
+  name            = "${var.prefix}-${var.name}"
   security_groups = aws_security_group.alb.*.id
-  subnets         = data.aws_subnet_ids.default.ids
+  subnets         = var.subnet-ids
   internal        = var.is_internal_alb
 
   lifecycle {
@@ -147,10 +147,10 @@ resource "aws_alb_listener" "http" {
 
 
 resource "aws_alb_target_group" "web_servers" {
-  name     = "${var.student_alias}-${var.name}"
+  name     = "${var.prefix}-${var.name}"
   port     = var.server_http_port
   protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+  vpc_id   = var.vpc_id
 
   deregistration_delay = 10
 
@@ -186,8 +186,8 @@ resource "aws_alb_listener_rule" "send_all_to_web_servers" {
 
 
 resource "aws_security_group" "alb" {
-  name   = "${var.student_alias}-${var.name}-alb"
-  vpc_id = data.aws_vpc.default.id
+  name   = "${var.prefix}-${var.name}-alb"
+  vpc_id = var.vpc_id
 }
 
 resource "aws_security_group_rule" "alb_allow_http_inbound" {
@@ -206,13 +206,4 @@ resource "aws_security_group_rule" "allow_all_outbound" {
   protocol          = "-1"
   security_group_id = aws_security_group.alb.id
   cidr_blocks       = ["0.0.0.0/0"]
-}
-
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
 }
